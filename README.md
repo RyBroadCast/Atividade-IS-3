@@ -13,117 +13,87 @@ Através dos comandos:
  - ```make clean```
 
 ### Código:
-Incluindo bibliotecas e declarando funções:
+Incluindo bibliotecas, declarando variáveis e funções:
 ```c
+#include <pthread.h>
 #include <stdio.h>
-#include <string.h>
-#include <math.h>
 #include <stdlib.h>
+#define MAXARR 1024
 
- struct queue{
-    int arrival_time;
-    int burst_time;
-    struct queue *next;
- };
+int max_num, min_num, average_num;
+int num_amount, arr[MAXARR], i;
 
-void enqueue(struct queue **head, struct queue **tail, int a, int b);
-int isEmpty(struct queue *head);
+void *average();
+void *max();
+void *min();
 ```
-
-Função int main(), recebe as entradas, adiciona em uma fila e printa as medias dos valores pedidos.
+Função int main(), recebe os números, cria as threads e printa os resultados das operações feitas nas funções.
 ```c
-int main()
-{
+int main() {
 
-      struct queue *head = NULL;
-	  struct queue *tail = NULL;
-  
-      int i, nProcess, total = 0, x, validate = 0, time_quantum;
-      int wait_time = 0, turnaround_time = 0, arrival_time = 0, burst_time = 0,    
-      active_time = 0;
-      float average_wait_time, average_turnaround_time, average_active_time;
-      scanf("%d %d", &nProcess, &time_quantum);
-      x = nProcess;
-      for(i = 0; i < nProcess; i++)
-      {
- 
-            scanf("%d %d", &arrival_time, &burst_time);
- 
-            enqueue(&head, &tail, arrival_time, burst_time);
-      }
+        int num = 0, i, t;
 
-      struct queue *aux = head;
- 
-      for(total = 0, i = 0; x != 0;)  {
-            if (aux->burst_time <= time_quantum && aux -> burst_time > 0) {
-                total += aux -> burst_time;
-                aux -> burst_time = 0;
-                validate = 1;
-            }
-            else if (aux -> burst_time > 0) {
-                aux -> burst_time = aux -> burst_time - time_quantum;
-                total += time_quantum;
-            }
-        
-            if (aux -> burst_time == 0 && validate == 1) {
-                x--;
-                wait_time += total - aux -> arrival_time - aux -> arrival_time;
-                turnaround_time += total - aux -> arrival_time;
-                active_time += total;
-                validate = 0;
-            }
-        
-            if (aux->next == NULL) { 
-                aux = head;          
-            }
-              
-            else if (head -> next -> arrival_time <= total) {
-                aux = aux -> next;
-            }
-              
-            else {
-                aux = head;
-            }
-      }
- 
-      average_wait_time = wait_time * 1.0 / nProcess;
-      average_turnaround_time = turnaround_time * 1.0 / nProcess;
-      average_active_time = active_time * 1.0 / nProcess;
-      
-      printf("\nRR %f %f %f", average_active_time, average_turnaround_time, average_wait_time);
+        scanf("%d",&num_amount);
+
+        for (i = 1; i < num_amount + 1; i++) {
+                scanf("%d",&num);
+                arr[i] = num;
+        }
+
+        pthread_t t1;
+        pthread_t t2;
+        pthread_t t3;
+
+        t = pthread_create(&t1,NULL,&average, NULL);
+        pthread_join(t1,NULL);
+
+        t = pthread_create(&t2,NULL,&min, NULL);
+        pthread_join(t2,NULL);
+
+        t = pthread_create(&t3,NULL,&max, NULL);
+        pthread_join(t3,NULL);
+        printf("The average value is %d\n",average_num);
+        printf("The minimum value is %d\n",min_num);
+        printf("The maximum value is %d\n",max_num);
 
 
-      return 0;
+        return 0;
 }
 ```
 
-Função enqueue (fila):
+Função average (média):
 ```c
-void enqueue(struct queue **head, struct queue **tail, int a, int b){
+void *average() {
+        int sum = 0;
+        for (int i = 1; i <= num_amount; i++){
+                sum = sum + arr[i];
+        }
 
-    struct queue *novo = (struct queue *)malloc(sizeof(struct queue));
-    	if(novo != NULL){
-    		novo-> arrival_time = a;
-    		novo -> burst_time = b;
-    		novo->next = NULL;
-    
-    		if(isEmpty(*head)){
-    			*head = novo;
-    			*tail = novo;
-    		}
-        else{
-    			(*tail)->next = novo;
-    			*tail = novo;
-    		}
-    	}
+        average_num = sum / num_amount;
+
 }
 ```
 
-Função isEmpty:
+Função max (maior número):
 ```c
-int isEmpty(struct queue *head){
-    return head == NULL;
-  }
+void *max() {
+        max_num = arr[1];
+        for (int i = 1; i <=  num_amount; i++) {
+                if(arr[i] > max_num) {
+                         max_num = arr[i];
+                }
+```
+
+Função min (menor número):
+```c
+void *min() {
+        min_num = arr[1];
+        for (int i = 1; i < num_amount; i++) {
+                if(arr[i] < min_num) {
+                         min_num = arr[i];
+                }
+        }
+}
 ```
 
 
